@@ -44,9 +44,9 @@ FORWARD -s 10.0.0.0/8 -o $tun_name -j ACCEPT
 FORWARD -s 172.16.0.0/12 -o $tun_name -j ACCEPT
 FORWARD -s 192.168.0.0/16 -o $tun_name -j ACCEPT
 FORWARD -i $tun_name -j ACCEPT
-PREROUTING -t nat ! -i $tun_name -s 10.0.0.0/8 -p udp --dport 53 -j DNAT --to 1.1.1.1
-PREROUTING -t nat ! -i $tun_name -s 172.16.0.0/12 -p udp --dport 53 -j DNAT --to 1.1.1.1
-PREROUTING -t nat ! -i $tun_name -s 192.168.0.0/16 -p udp --dport 53 -j DNAT --to 1.1.1.1
+-t nat PREROUTING ! -i $tun_name -s 10.0.0.0/8 -p udp --dport 53 -j DNAT --to 1.1.1.1
+-t nat PREROUTING ! -i $tun_name -s 172.16.0.0/12 -p udp --dport 53 -j DNAT --to 1.1.1.1
+-t nat PREROUTING ! -i $tun_name -s 192.168.0.0/16 -p udp --dport 53 -j DNAT --to 1.1.1.1
 EOF
 }
 
@@ -68,7 +68,11 @@ function cleanup() {
     local tun_table_index=$2
 
     iptables_rules_for $tun_name | while read -r rule; do
-        $iptables -D $rule 2>/dev/null
+        if [[ $rule == "-t nat "* ]]; then
+            $iptables -t nat -D ${rule#-t nat } 2>/dev/null
+        else
+            $iptables -D $rule 2>/dev/null
+        fi
     done
 
     ip_rules_for $tun_name $tun_table_index | while read -r rule; do
@@ -85,7 +89,11 @@ function setup() {
     cleanup $tun_name $tun_table_index
 
     iptables_rules_for $tun_name | while read -r rule; do
-        $iptables -I $rule
+        if [[ $rule == "-t nat "* ]]; then
+            $iptables -t nat -I ${rule#-t nat }
+        else
+            $iptables -I $rule
+        fi
     done
 
     ip_rules_for $tun_name $tun_table_index | while read -r rule; do
