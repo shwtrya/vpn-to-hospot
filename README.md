@@ -6,6 +6,10 @@ A magisk module to enable natless routing LAN traffic to VpnService.
 
 1. Install vpn-gateway.zip in magisk manager
 
+# Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
+
 # Build
 
 1. Install `zip`
