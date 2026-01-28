@@ -1,10 +1,16 @@
-.PHONY: build
+.PHONY: build clean version
 
-build: vpn-gateway.zip
+VERSION := $(shell awk -F= '/^version=/{print $$2; exit}' module.prop)
+OUTPUT := vpn-gateway-$(VERSION).zip
 
-vpn-gateway.zip: META-INF module.prop service.sh
-	rm -rf vpn-gateway.zip
-	zip -r vpn-gateway.zip META-INF module.prop service.sh
+build: $(OUTPUT)
+
+version: module.prop
+	@awk -F= '/^version=/{print $$2; exit}' module.prop
+
+$(OUTPUT): META-INF module.prop service.sh
+	rm -f $(OUTPUT)
+	zip -r $(OUTPUT) META-INF module.prop service.sh
 
 clean:
-	rm -rf vpn-gateway.zip
+	rm -rf vpn-gateway-*.zip
