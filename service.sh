@@ -17,16 +17,6 @@ if [[ ! -x $ip6tables ]]; then
     ipv6_enabled=false
 fi
 
-function assert() {
-    if ! "$@"; then
-        echo "'$*' failed"
-
-        clean_rules
-
-        exit 1
-    fi
-}
-
 function ip_rules_for() {
     local tun_name=$1
     local tun_table_index=$2
