@@ -75,9 +75,13 @@ function cleanup() {
         fi
     done
 
-    ip_rules_for $tun_name $tun_table_index | while read -r rule; do
-        $ip rule del $rule 2>/dev/null
-    done
+    if [[ -n "$tun_table_index" ]]; then
+        ip_rules_for $tun_name $tun_table_index | while read -r rule; do
+            $ip rule del $rule 2>/dev/null
+        done
+    else
+        echo "Skip ip rule cleanup: $tun_name has no table index"
+    fi
 
     $ip6tables -D FORWARD -j REJECT --reject-with icmp6-no-route
 }
