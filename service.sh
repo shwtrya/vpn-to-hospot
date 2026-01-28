@@ -6,9 +6,15 @@ ip="/system/bin/ip"
 iptables="/system/bin/iptables"
 ip6tables="/system/bin/ip6tables"
 
+ipv6_enabled=true
+
 if [[ ! -x $ip ]] || [[ ! -x $iptables ]]; then
     echo "command 'ip' or 'iptables' not found"
     exit 1
+fi
+if [[ ! -x $ip6tables ]]; then
+    echo "warning: command 'ip6tables' not found; IPv6 forwarding will not be blocked"
+    ipv6_enabled=false
 fi
 
 function assert() {
@@ -83,7 +89,11 @@ function cleanup() {
         echo "Skip ip rule cleanup: $tun_name has no table index"
     fi
 
-    $ip6tables -D FORWARD -j REJECT --reject-with icmp6-no-route
+    if [[ "$ipv6_enabled" == true ]]; then
+        $ip6tables -D FORWARD -j REJECT --reject-with icmp6-no-route
+    else
+        echo "Skip IPv6 cleanup: ip6tables unavailable"
+    fi
 }
 
 function setup() {
@@ -104,7 +114,11 @@ function setup() {
         $ip rule add $rule
     done
 
-    $ip6tables -I FORWARD -j REJECT --reject-with icmp6-no-route
+    if [[ "$ipv6_enabled" == true ]]; then
+        $ip6tables -I FORWARD -j REJECT --reject-with icmp6-no-route
+    else
+        echo "Skip IPv6 setup: ip6tables unavailable"
+    fi
 }
 
 while [[ ! -f /data/misc/net/rt_tables ]]; do
